@@ -1,0 +1,18 @@
+{
+  "name": "ng-map",
+  "description": "Angular version of the JPM Trip Map Editor",
+  "main": "",
+  "authors": [
+    "Julien Pilet"
+  ],
+  "license": "all rights reserved",
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
