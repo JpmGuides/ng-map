@@ -1,7 +1,7 @@
 import { Component, Input, Output, OnInit, ViewChild, ElementRef } from '@angular/core';
-import { TripNodeProperties } from './trip-node';
+import { TripNodeProperties } from '../trip-map/trip-node';
 
-import {IPoint, Point} from './point';
+import {IPoint, Point} from '../trip-map/point';
 
 @Component({
   selector: 'text-prop',

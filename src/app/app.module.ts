@@ -5,11 +5,13 @@ import { HttpModule } from '@angular/http';
 
 import { AppComponent } from './app.component';
 import { TripMapComponent } from './trip-map/trip-map.component';
+import { TextPropComponent } from './text-prop/text-prop.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     TripMapComponent,
+    TextPropComponent
   ],
   imports: [
     BrowserModule,
