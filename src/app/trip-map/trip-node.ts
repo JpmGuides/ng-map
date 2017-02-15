@@ -1,5 +1,5 @@
 import {Point, IPoint } from './point';
-import BoundingBox from './bounding-box';
+import { BoundingBox } from './bounding-box';
 
 export interface TripNodeProperties {
   point?: boolean;

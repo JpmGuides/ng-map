@@ -78,6 +78,7 @@ export class TripMapComponent implements OnInit {
   private _selectedCountry: string;
 
   private _editedProperties: TripNodeProperties;
+  private _editedPropertiesTitle: string;
   private _autoRefresh: number;
 
   @ViewChild('mapCanvas') canvas: ElementRef;
@@ -167,6 +168,7 @@ export class TripMapComponent implements OnInit {
     this._selectedCountry = undefined;
     this._selectedNode = undefined;
     this._editedProperties = this._tripLayer.defaultTextProp;
+    this._editedPropertiesTitle = 'Default';
   }
 
   selectCountry(country?: string) {
@@ -177,12 +179,19 @@ export class TripMapComponent implements OnInit {
   selectNode(node: TripNode) {
     this.clearSelection();
 
-    if (node && node.name in this._graph.nodes) {
+    if (node) {
       if (!node.properties) {
         node.properties = { };
       }
-      this._editedProperties = node.properties;
-      this._selectedNode = this._graph.nodes[node.name];
+      if (node.name in this._graph.nodes) {
+        this._editedProperties = node.properties;
+        this._editedPropertiesTitle = node.name;
+        this._selectedNode = this._graph.nodes[node.name];
+      } else {
+        // this node is probably a combined one.
+        this._editedProperties = node.properties;
+        this._editedPropertiesTitle = 'Multi-line';
+      }
     }
   }
 
