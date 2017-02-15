@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { TripGraph } from './trip-graph';
 import { TripGraphLayer } from './trip-graph-layer';
-import { TripNode } from './trip-node';
+import { TripNode, TripNodeProperties } from './trip-node';
 
 import {IPoint, Point} from './point';
 
@@ -77,6 +77,9 @@ export class TripMapComponent implements OnInit {
   private _selectedNode: TripNode;
   private _selectedCountry: string;
 
+  private _editedProperties: TripNodeProperties;
+  private _autoRefresh: number;
+
   @ViewChild('mapCanvas') canvas: ElementRef;
 
   constructor() {
@@ -133,30 +136,53 @@ export class TripMapComponent implements OnInit {
       renderer: this._renderer,
       graph: this._graph
     });
-
     this._renderer.addLayer(this._tripLayer);
 
     this._tripLayer.loadIcons((err) => { this._renderer.refresh(); });
 
-    this._editor = new TripGraphEditor(this._renderer, this._graph);
-    this._renderer.pinchZoom.touchEventHandlers.push(this._editor);
+    // setTimeout is necessary to restart an angular check cycle.
+    // In ngAfterViewInit, we're not supposed to change the state.
+    setTimeout(() => {
+      this.clearSelection();
+      this._editor = new TripGraphEditor(this._renderer, this._graph);
+      this._renderer.pinchZoom.touchEventHandlers.push(this._editor);
 
-    this._editor.onLabelSelect = (node: TripNode) => {
-      this.selectCountry();
-      this.selectNode(node);
-    };
+      this._editor.onLabelSelect = (node: TripNode) => {
+        this.selectCountry();
+        this.selectNode(node);
+      };
+    }, 10);
 
+    this._autoRefresh = setInterval(
+      () => { this._renderer.refreshIfNotMoving(); }, 500);
+  }
+
+  ngOnDestroy() {
+    if (this._autoRefresh) {
+      clearInterval(this._autoRefresh);
+    }
+  }
+
+  clearSelection() {
+    this._selectedCountry = undefined;
+    this._selectedNode = undefined;
+    this._editedProperties = this._tripLayer.defaultTextProp;
   }
 
   selectCountry(country?: string) {
+    this.clearSelection();
     this._selectedCountry = country;
   }
 
   selectNode(node: TripNode) {
+    this.clearSelection();
+
     if (node && node.name in this._graph.nodes) {
+      if (!node.properties) {
+        node.properties = { };
+      }
+      this._editedProperties = node.properties;
       this._selectedNode = this._graph.nodes[node.name];
-    } else {
-      this._selectedNode = undefined;
     }
   }
 

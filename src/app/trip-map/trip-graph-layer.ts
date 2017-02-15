@@ -194,10 +194,9 @@ export class TripGraphLayer {
 
   drawNodeLabel(context: CanvasRenderingContext2D, pinchZoom: any, node: TripNode) {
     if (node.label || node.labelIcon) {
-      if (node.properties && node.properties.labelCoord) {
-        let labelPoint = pinchZoom.viewerPosFromWorldPos(node.properties.labelCoord);
-      }
-      let pos = labelPoint || pinchZoom.viewerPosFromWorldPos(node.coord);
+      let pos = pinchZoom.viewerPosFromWorldPos(
+        (node.properties && node.properties.labelCoord ?
+         node.properties.labelCoord : node.coord));
       if (node.label) {
         TripGraphLayer.drawText(context, node.label, pos,
                  this.renderer.pixelRatio, node.properties || {},
