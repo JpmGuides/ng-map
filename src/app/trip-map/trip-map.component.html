@@ -1,4 +1,36 @@
+<span class="inline">
+
+<text-prop properties="_selectedNode.properties"></text-prop>
+<div>
+  <button (click)="update()">Update</button>
+  <button (click)="placeLabels()">Place labels</button>
+  <button (click)="resetCurves()">Reset curves</button>
+  <button (click)="setFrame()">Reset frame</button>
+</div>
+
 <canvas
   #mapCanvas
   [attr.width] = '_canvasWidth'
   [attr.height] = '_canvasHeight'></canvas>
+
+<p *ngIf="_selectedCountry">Selected country: {{_selectedCountry}}</p>
+<p *ngIf="_selectedNode">Selected label: {{_selectedNode.name}}</p>
+</span>
+
+<span class="inline">
+<ul>
+  <li>
+    <h3>Edge</h3>
+    <ul>
+      <li *ngFor="let e of _graph.edges">{{e.from}} - {{ e.to }}</li>
+    </ul>
+  </li>
+  <li>
+    <h3>Nodes</h3>
+    <ul>
+      <li *ngFor="let n of nodeNames()">{{n}}</li>
+    </ul>
+  </li>
+</ul>
+</span>
+

@@ -1,4 +1,17 @@
 
+function bboxOverlaps(a, b) {
+  if (a.max.x < b.min.x) return false; // a is left of b
+  if (a.min.x > b.max.x) return false; // a is right of b
+  if (a.max.y < b.min.y) return false; // a is above b
+  if (a.min.y > b.max.y) return false; // a is below b
+  return true; // boxes overlap
+}
+
+function bboxContains(box, p) {
+  return ((p.x >= box.min.x) && (p.x <= box.max.x)
+          && (p.y >= box.min.y) && (p.y <= box.max.y));
+}
+
 
 function TripGraphEditor(renderer, graph) {
   this.graph = graph;

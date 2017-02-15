@@ -5,8 +5,8 @@ import { TripEdge } from './trip-edge';
 import { BoundingBox } from './bounding-box';
 //import { Bezier } from 'bezier-js';
 
-declare var Bezier : any;
 declare var d3 : any;
+declare var Bezier : any;
 
 export class TripGraph {
   nodes : { [name: string] : TripNode };
@@ -48,6 +48,23 @@ export class TripGraph {
     return result;
   };
 
+  createDefaultBezier() {
+    for (var i in this.edges) {
+      var e = this.edges[i];
+      var from = this.nodes[e.from];
+      var to = this.nodes[e.to];
+
+      this.edges[i] = {
+        from: e.from,
+        to: e.to,
+        controlPoints: TripGraph.generateControlPoints(undefined,
+                                                       from.coord, to.coord,
+                                                       undefined)
+      };
+    }
+  }
+
+
   static generateControlPoints(
       p0 : Point, p1 : Point, p2 : Point, p3 : Point) : Point[] {
     let delta = Point.minus(p2, p1).mul(1/3);
@@ -58,7 +75,7 @@ export class TripGraph {
     ];
   };
 
-  static bezierFromPoints(points : IPoint[]) : Bezier {
+  static bezierFromPoints(points : IPoint[]) : any {
     var result = [];
     for (var i = 0; i < 4; ++i) {
       result.push(points[i].x);
@@ -84,7 +101,7 @@ export class TripGraph {
     return result;
   };
 
-  bezier(edge : TripEdge) : Bezier[] {
+  bezier(edge : TripEdge) : any[] {
     if (!edge.controlPoints || edge.hidden) {
       return [];
     }
@@ -124,7 +141,7 @@ export class TripGraph {
   bounds() : BoundingBox {
     let r = new BoundingBox();
     for (var i in this.nodes) {
-      r.addArray(this.nodes[i].coord);
+      r.addPoint(this.nodes[i].coord);
     }
     return r;
   }
@@ -170,7 +187,7 @@ export class TripGraph {
       y: (frame.max.y + frame.min.y) / 2,
       scale: (frame.max.x - frame.min.x)
     };
-  };
+  }
 
   static placeLeaderLine(node : TripNode) {
     if (!node.properties) {

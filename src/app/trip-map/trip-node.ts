@@ -5,7 +5,7 @@ export interface TripNodeProperties {
   point?: boolean;
   leaderLine?: string;
   dashed?: number[];
-  leaderLineWidth? : number;
+  leaderLineWidth?: number;
   labelBbox?: BoundingBox;
   radius?: number;
   leaderLineAnchor?: Point;
@@ -32,7 +32,7 @@ export interface TripNode {
     height?: number;
     autorotate?: number;
     angle?: number;
-  },
+  };
   properties?: TripNodeProperties;
 
   viewerPos?: Point;
