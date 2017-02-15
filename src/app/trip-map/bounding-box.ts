@@ -1,7 +1,7 @@
 
 import { Point, IPoint } from './point';
 
-export default class BoundingBox {
+export class BoundingBox {
   min?: Point;
   max?: Point;
 
