@@ -24,13 +24,26 @@
   <li>
     <h3>Edge</h3>
     <ul>
-      <li *ngFor="let e of _graph.edges">{{e.from}} - {{ e.to }}</li>
+      <li *ngFor="let e of _graph.edges"
+        [class.nodeSelected]="_selectedEdge && _selectedEdge.from == e.from && _selectedEdge.to == e.to"
+        >
+      {{e.from}} - {{ e.to }}
+        <button class="delete"
+          (click)="removeEdge(e); $event.stopPropagation()">x</button>
+      </li>
     </ul>
   </li>
   <li>
     <h3>Nodes</h3>
     <ul>
-      <li *ngFor="let n of nodeNames()">{{n}}</li>
+      <li *ngFor="let n of nodeArray()"
+        [class.nodeSelected]="_selectedNode == n"
+        (click)="selectNode(n)"
+        >{{n.name}}
+
+        <button class="delete"
+          (click)="removeNode(n); $event.stopPropagation()">x</button>
+      </li>
     </ul>
   </li>
 </ul>

@@ -1,4 +1,36 @@
+function placeLeaderLine(node) {
+  if (!node.properties) {
+    node.properties = {};
+  }
+  var placement = node.properties.leaderLine || 'bestAnchor';
 
+  var bbox = node.properties.labelBbox;
+  var anchor;
+  if (placement == 'center') {
+    var width = bbox.max.x - bbox.min.x;
+    var center = new Point((bbox.min.x + bbox.max.x) / 2,
+                           (bbox.min.y + bbox.max.y) / 2);
+    var toCoord = Point.minus(node.coord, center);
+    toCoord.mul(.6 * width / Point.norm(toCoord));
+    anchor = Point.plus(center, toCoord);
+  } else if (placement == 'closestOnBbox') {
+    anchor = closestPointToBbox(node.coord, bbox);
+  } else {
+    anchor = d3.labeler.closestLineAnchorPoint(
+          node.coord,
+          {
+            left: bbox.min.x,
+            right: bbox.max.x,
+            top: bbox.min.y,
+            bottom: bbox.max.y,
+            cx: (bbox.min.x + bbox.max.x) / 2,
+            cy: (bbox.min.y + bbox.max.y) / 2
+          }
+      );
+  }
+
+  node.properties.leaderLineAnchor = anchor;
+}
 function bboxOverlaps(a, b) {
   if (a.max.x < b.min.x) return false; // a is left of b
   if (a.min.x > b.max.x) return false; // a is right of b
@@ -55,7 +87,7 @@ TripGraphEditor.prototype.acceptTouchEvent = function(viewer, world, type) {
       properties.labelBbox.min.y += delta.y;
       properties.labelBbox.max.x += delta.x;
       properties.labelBbox.max.y += delta.y;
-      TripGraph.placeLeaderLine(clickedLabel);
+      placeLeaderLine(clickedLabel);
     };
     return true;
   } else {
@@ -256,6 +288,10 @@ TripGraphEditor.prototype.selectBezier = function(b) {
   }
   if (this.selectedLabel) {
     this.deselectLabel();
+  }
+
+  if (this.onBezierSelect) {
+    this.onBezierSelect(this.selectedBezier);
   }
   this.renderer.refreshIfNotMoving();
 };

@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { TripGraph } from './trip-graph';
 import { TripGraphLayer } from './trip-graph-layer';
 import { TripNode, TripNodeProperties } from './trip-node';
+import { TripEdge } from './trip-edge';
 
 import {IPoint, Point} from './point';
 
@@ -54,9 +55,16 @@ declare class WorldBackgroundLayer {
 
 declare class TripGraphEditor {
   graph: TripGraph;
+
+  selectedLabel: TripNode;
   onLabelSelect: (node: TripNode) => void;
 
+  selectedBezier: { edge: TripEdge };
+  onBezierSelect: (bezier: {edge: TripEdge}) => void;
+
   constructor (renderer: CanvasTilesRenderer, graph: TripGraph);
+  deselectLabel();
+  selectLabel(node: TripNode);
 };
 
 @Component({
@@ -76,6 +84,7 @@ export class TripMapComponent implements OnInit {
   private _graph: TripGraph;
   private _selectedNode: TripNode;
   private _selectedCountry: string;
+  private _selectedEdge: TripEdge;
 
   private _editedProperties: TripNodeProperties;
   private _editedPropertiesTitle: string;
@@ -128,8 +137,14 @@ export class TripMapComponent implements OnInit {
 
     this._worldLayer = new WorldBackgroundLayer({
       renderer: this._renderer,
-      onCountryClic: (country) => { this.selectCountry(country.id); },
-      onSeaClic: () => { this.selectCountry(''); }
+      onCountryClic: (country) => {
+        this._editor.deselectLabel();
+        this.selectCountry(country.id);
+      },
+      onSeaClic: () => {
+        this._editor.deselectLabel();
+        this.selectCountry('');
+      }
     });
     this._renderer.layers[0] = this._worldLayer;
 
@@ -149,13 +164,20 @@ export class TripMapComponent implements OnInit {
       this._renderer.pinchZoom.touchEventHandlers.push(this._editor);
 
       this._editor.onLabelSelect = (node: TripNode) => {
-        this.selectCountry();
         this.selectNode(node);
       };
+      this._editor.onBezierSelect = (bezier: {edge: TripEdge}) => {
+        if (bezier) {
+          this.selectEdge(bezier.edge);
+        } else {
+          this.clearSelection();
+        }
+      };
+
     }, 10);
 
     this._autoRefresh = setInterval(
-      () => { this._renderer.refreshIfNotMoving(); }, 500);
+      () => { this._renderer.refreshIfNotMoving(); }, 1000);
   }
 
   ngOnDestroy() {
@@ -167,6 +189,7 @@ export class TripMapComponent implements OnInit {
   clearSelection() {
     this._selectedCountry = undefined;
     this._selectedNode = undefined;
+    this._selectedEdge = undefined;
     this._editedProperties = this._tripLayer.defaultTextProp;
     this._editedPropertiesTitle = 'Default';
   }
@@ -192,11 +215,49 @@ export class TripMapComponent implements OnInit {
         this._editedProperties = node.properties;
         this._editedPropertiesTitle = 'Multi-line';
       }
+      if (node !== this._editor.selectedLabel) {
+        const savedCallback = this._editor.onLabelSelect;
+        this._editor.onLabelSelect = () => {};
+        if (node.name in this._editor.graph.nodes) {
+          this._editor.selectLabel(node);
+        } else {
+          this._editor.deselectLabel();
+        }
+        this._editor.onLabelSelect = savedCallback;
+      }
     }
+  }
+
+  selectEdge(edge: TripEdge) {
+    this.clearSelection();
+    this._selectedEdge = edge;
   }
 
   nodeNames(): string[] {
     return Object.keys(this._graph.nodes);
+  }
+
+  nodeArray(): TripNode[] {
+    const r: TripNode[] = [];
+    for (let k of Object.keys(this._graph.nodes)) {
+      r.push(this._graph.nodes[k]);
+    }
+    return r;
+  }
+
+  removeNode(node: TripNode) {
+    this._graph.edges = this._graph.edges.filter(
+      (e) => (e.from !== node.name) && (e.to !== node.name));
+    delete this._graph.nodes[node.name];
+    this.resetCurves();
+  }
+
+  removeEdge(edge: TripEdge) {
+    const compareEdges =
+      (e: TripEdge) => e.from !== edge.from || e.to !== edge.to;
+
+    this._graph.edges = this._graph.edges.filter(compareEdges);
+    this._editor.graph.edges = this._editor.graph.edges.filter(compareEdges);
   }
 
   setFrame(width?: number, height?: number) {
@@ -220,13 +281,12 @@ export class TripMapComponent implements OnInit {
 
   resetCurves() {
     const graph = this._graph;
-    const tripLayer = this._tripLayer;
 
     graph.createDefaultBezier();
-    tripLayer.graph = tripLayer.makeFusedGraph(graph);
-    this._editor.graph = tripLayer.graph;
+    this._tripLayer.graph = this._tripLayer.makeFusedGraph(graph);
+    this._editor.graph = this._tripLayer.graph;
 
-    tripLayer.placeLabels(this._renderer.canvas.getContext('2d'));
+    this._tripLayer.placeLabels(this._renderer.canvas.getContext('2d'));
     this._renderer.refresh();
   }
 }

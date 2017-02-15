@@ -1,4 +1,5 @@
 import * as Tiles from './tiles';
+import { TripGraph } from './trip-graph';
 
 export interface TripSaved {
   graph: TripGraph;
