@@ -6,13 +6,13 @@ import { Size2D } from './size2d';
 import { TripSaved } from './trip-saved';
 import { Point, IPoint } from './point';
 
-declare var d3 : any;
-declare var Bezier : any;
+declare const d3: any;
+declare const Bezier: any;
 
 export interface Location {
-  x: Number,
-  y: Number,
-  scale: Number
+  x: Number;
+  y: Number;
+  scale: Number;
 }
 
 export interface CanvasTilesRendererParams {
@@ -21,57 +21,51 @@ export interface CanvasTilesRendererParams {
   canvas: HTMLCanvasElement;
 }
 
-export interface Layer {
-}
-
 declare class CanvasTilesRenderer {
-  constructor (parameters: CanvasTilesRendererParams);
-  pixelRatio : number;
-  layers : any[];
+  pixelRatio: number;
+  layers: any[];
   pinchZoom: PinchZoom;
   canvas: HTMLCanvasElement;
   location: Location;
 
-  addLayer(l : any);
+  constructor (parameters: CanvasTilesRendererParams);
+  addLayer(l: any);
   refresh();
   refreshIfNotMoving();
 
-  setLocation(loc : Location);
-  loadImage(url : string,
-            success: (data : any) => void,
-            failure: (err : string) => void);
+  setLocation(loc: Location);
+  loadImage(url: string,
+            success: (data: any) => void,
+            failure: (err: string) => void);
 }
 
 declare class PinchZoom {
-  touchEventHandlers : any[];
+  touchEventHandlers: any[];
 
-  viewerPosFromWorldPos(x : IPoint | number[] | number, y? : number) : Point;
-  worldPosFromViewerPos(x : IPoint | number[] | number, y? : number) : Point;
+  viewerPosFromWorldPos(x: IPoint | number[] | number, y?: number): Point;
+  worldPosFromViewerPos(x: IPoint | number[] | number, y?: number): Point;
 }
 
 
 export interface TripGraphLayerParams {
   renderer: CanvasTilesRenderer;
   graph: TripGraph;
-  defaultRadius? : number;
-  defaultFontSize? : number;
+  defaultRadius?: number;
+  defaultFontSize?: number;
 };
 
 export class TripGraphLayer {
   public graph: TripGraph;
+  public defaultTextProp: TripNodeProperties;
+
   private renderer: CanvasTilesRenderer;
-  private defaultRadius : number;
-  private icons : any;
-  private defaultTextProp : {
-    fontSize : number;
-    stroke: string;
-    fill: string;
-  };
+  private defaultRadius: number;
+  private icons: any;
 
-  private iconsToLoad : number;
-  private failedIcons : number;
+  private iconsToLoad: number;
+  private failedIcons: number;
 
-  constructor(private params : TripGraphLayerParams) {
+  constructor(private params: TripGraphLayerParams) {
     this.renderer = params.renderer;
     this.defaultRadius = params.defaultRadius || 6;
     this.icons = {};
@@ -82,7 +76,7 @@ export class TripGraphLayer {
     };
 
     if (!this.renderer) {
-      throw(new Error("TripGraphLayer: no renderer !"));
+      throw(new Error('TripGraphLayer: no renderer !'));
     }
     this.graph = params.graph || new TripGraph();
   }
@@ -96,15 +90,15 @@ export class TripGraphLayer {
     graph.edges.forEach(function(edge) {
       me.setEdgeStrokeStyle(context, edge);
 
-      var bezierCurves = graph.bezier(edge);
-      for (var i in bezierCurves ) {
-        var bezier = bezierCurves[i];
+      let bezierCurves = graph.bezier(edge);
+      for (let i in bezierCurves ) {
+        let bezier = bezierCurves[i];
         TripGraphLayer.drawBezier(context, pinchZoom, bezier, pixelRatio);
       }
       if (bezierCurves.length > 1 && edge.drawMiddlePoint) {
-        for (var i in bezierCurves) {
-          var p = pinchZoom.viewerPosFromWorldPos(bezierCurves[i].points[3]);
-          var radius = 5 * pixelRatio;
+        for (let i in bezierCurves) {
+          let p = pinchZoom.viewerPosFromWorldPos(bezierCurves[i].points[3]);
+          let radius = 5 * pixelRatio;
           context.beginPath();
           context.arc(p.x, p.y, radius, 0, 2 * Math.PI, false);
           context.fillStype = '#000000';
@@ -114,46 +108,46 @@ export class TripGraphLayer {
     });
 
 
-    for (var i in graph.nodes) {
-      var node = graph.nodes[i];
+    for (let i in graph.nodes) {
+      let node = graph.nodes[i];
       node.viewerPos = pinchZoom.viewerPosFromWorldPos(node.coord);
     }
 
-    for (var i in graph.nodes) {
+    for (let i in graph.nodes) {
       this.drawNodePoint(context, pinchZoom, graph.nodes[i]);
     }
-    for (var i in graph.nodes) {
+    for (let i in graph.nodes) {
       this.drawLeaderLine(context, pinchZoom, graph.nodes[i]);
     }
-    for (var i in graph.nodes) {
+    for (let i in graph.nodes) {
       this.drawNodeLabel(context, pinchZoom, graph.nodes[i]);
     }
   }
 
-  static drawBezier(context: CanvasRenderingContext2D, pinchZoom : any,
-                    curve : any, pixelRatio : number) {
+  static drawBezier(context: CanvasRenderingContext2D, pinchZoom: any,
+                    curve: any, pixelRatio: number) {
 
-    var ptArray = new Array(8);
-    var points = curve.points;
-    for (var j = 0; j < 4; ++j) {
+    let ptArray = new Array(8);
+    let points = curve.points;
+    for (let j = 0; j < 4; ++j) {
       let p = pinchZoom.viewerPosFromWorldPos(points[j]);
       ptArray[j * 2] = p.x;
       ptArray[j * 2 + 1] = p.y;
     }
 
-    var bezier = new Bezier(ptArray);
-    var l = bezier.length();
-    var numArrows = Math.min(2, Math.floor(l / (pixelRatio * 30)));
-    var size = 10 * pixelRatio;
+    let bezier = new Bezier(ptArray);
+    let l = bezier.length();
+    let numArrows = Math.min(2, Math.floor(l / (pixelRatio * 30)));
+    let size = 10 * pixelRatio;
 
-    for (var i = 1; i < numArrows; ++i) {
+    for (let i = 1; i < numArrows; ++i) {
       let t = i / numArrows;
       let p = bezier.get(t);
       let n = bezier.normal(t);
       let tangent = new Point(bezier.derivative(t));
       tangent.mul(size / tangent.norm());
       p = Point.plus(p, Point.times(.5, tangent));
-      var base = Point.minus(p, tangent);
+      let base = Point.minus(p, tangent);
 
       context.beginPath();
       context.moveTo(base.x + (size/2) * n.x, base.y + (size/2) * n.y);
@@ -163,7 +157,7 @@ export class TripGraphLayer {
       context.fill();
     }
 
-    var viewcurve = bezier.points;
+    let viewcurve = bezier.points;
 
     context.beginPath();
     context.moveTo(viewcurve[0].x, viewcurve[0].y);
@@ -175,35 +169,35 @@ export class TripGraphLayer {
     context.stroke();
   }
 
-  setEdgeStrokeStyle(context : CanvasRenderingContext2D, edge : TripEdge) {
-    var style = edge.lineColor || '#003300';
+  setEdgeStrokeStyle(context: CanvasRenderingContext2D, edge: TripEdge) {
+    let style = edge.lineColor || '#003300';
     context.strokeStyle = style;
     context.fillStyle = style;
     context.lineWidth = this.renderer.pixelRatio * (edge.lineWidth || 2);
   };
 
-  nodeRadius(node : TripNode) : number {
-    var r = this.defaultRadius;
+  nodeRadius(node: TripNode): number {
+    let r = this.defaultRadius;
     if (node.properties && node.properties.radius) {
       r = node.properties.radius;
     }
     return r * this.renderer.pixelRatio;
   };
 
-  drawNodePoint(context : CanvasRenderingContext2D, pinchZoom : any, node : TripNode) {
+  drawNodePoint(context: CanvasRenderingContext2D, pinchZoom: any, node: TripNode) {
     if (node.properties && node.properties.point == false) {
       return;
     }
-    var pos = node.viewerPos;
+    let pos = node.viewerPos;
     this.drawPoint(context, pos, this.renderer.pixelRatio, node.properties || {});
   }
 
   drawNodeLabel(context: CanvasRenderingContext2D, pinchZoom: any, node: TripNode) {
     if (node.label || node.labelIcon) {
       if (node.properties && node.properties.labelCoord) {
-        var labelPoint = pinchZoom.viewerPosFromWorldPos(node.properties.labelCoord);
+        let labelPoint = pinchZoom.viewerPosFromWorldPos(node.properties.labelCoord);
       }
-      var pos = labelPoint || pinchZoom.viewerPosFromWorldPos(node.coord);
+      let pos = labelPoint || pinchZoom.viewerPosFromWorldPos(node.coord);
       if (node.label) {
         TripGraphLayer.drawText(context, node.label, pos,
                  this.renderer.pixelRatio, node.properties || {},
@@ -220,7 +214,7 @@ export class TripGraphLayer {
                  pos, this.renderer.pixelRatio);
       }
       if (node.properties && node.properties.frame && node.label) {
-        var size = TripGraphLayer.measureText(
+        let size = TripGraphLayer.measureText(
             context, node.label,
             this.renderer.pixelRatio, node.properties || {},
             this.defaultTextProp);
@@ -237,20 +231,20 @@ export class TripGraphLayer {
 
   drawLeaderLine(context: CanvasRenderingContext2D, pinchZoom: any, node: TripNode) {
     if (node.properties && node.properties.leaderLineAnchor) {
-      var pixelRatio = this.renderer.pixelRatio;
-      var p = pinchZoom.viewerPosFromWorldPos(node.properties.leaderLineAnchor);
+      let pixelRatio = this.renderer.pixelRatio;
+      let p = pinchZoom.viewerPosFromWorldPos(node.properties.leaderLineAnchor);
       context.lineWidth = (node.properties.leaderLineWidth || 1) * pixelRatio;
       context.beginPath();
 
-      var pos = pinchZoom.viewerPosFromWorldPos(node.coord);
-      var radius = this.nodeRadius(node);
-      var closest = pinchZoom.viewerPosFromWorldPos(
+      let pos = pinchZoom.viewerPosFromWorldPos(node.coord);
+      let radius = this.nodeRadius(node);
+      let closest = pinchZoom.viewerPosFromWorldPos(
           BoundingBox.closestPoint(new Point(node.coord), node.properties.labelBbox));
 
       if (Point.dist(closest, pos) > (3*radius)) {
         if (node.properties.dashed) {
-          var scaled = [];
-          for (var i in node.properties.dashed) {
+          let scaled = [];
+          for (let i in node.properties.dashed) {
             scaled.push(this.renderer.pixelRatio * node.properties.dashed[i]);
           }
           context.setLineDash(scaled);
@@ -267,7 +261,7 @@ export class TripGraphLayer {
     }
   };
 
-  drawPoint(context : CanvasRenderingContext2D, p : IPoint, pixelRatio: number, properties: TripNodeProperties) {
+  drawPoint(context: CanvasRenderingContext2D, p: IPoint, pixelRatio: number, properties: TripNodeProperties) {
       context.strokeStyle = "rgba(0,0,0,1)";
       context.fillStyle = "rgba(255,255,255,1)";
       context.lineWidth = 2 * pixelRatio;
@@ -278,27 +272,27 @@ export class TripGraphLayer {
       context.fill();
   };
 
-  static measureText(context: CanvasRenderingContext2D, text : string,
+  static measureText(context: CanvasRenderingContext2D, text: string,
                      pixelRatio: number, properties: TripNodeProperties,
                      defaultTextProp: TripNodeProperties) {
-    var lines = text.split('\n');
-    var size = TripGraphLayer.setTextStyle(
+    let lines = text.split('\n');
+    let size = TripGraphLayer.setTextStyle(
         context, pixelRatio, properties, defaultTextProp);
 
-    var r = { width: 0, height: size * lines.length };
+    let r = { width: 0, height: size * lines.length };
 
-    for (var i in lines) {
+    for (let i in lines) {
       r.width = Math.max(r.width, context.measureText(lines[i]).width);
     }
       
     return r; 
   }
 
-  static setTextStyle(context: CanvasRenderingContext2D, pixelRatio : number,
+  static setTextStyle(context: CanvasRenderingContext2D, pixelRatio: number,
                      properties: TripNodeProperties,
-                     defaultTextProp: TripNodeProperties) : number {
+                     defaultTextProp: TripNodeProperties): number {
     properties = properties || {};
-    var fontSize = properties.fontSize || defaultTextProp.fontSize;
+    let fontSize = properties.fontSize || defaultTextProp.fontSize;
     fontSize *= pixelRatio;
     context.font = fontSize + 'px ' + (properties.font || 'Helvetica');
     context.strokeStyle = properties.stroke || defaultTextProp.stroke ;
@@ -307,15 +301,15 @@ export class TripGraphLayer {
     return parseInt(''+ fontSize);
   };
 
-  static drawText(context : CanvasRenderingContext2D, text : string,
-                  pos : IPoint, pixelRatio : number,
+  static drawText(context: CanvasRenderingContext2D, text: string,
+                  pos: IPoint, pixelRatio: number,
                   properties: TripNodeProperties,
                   defaultTextProp: TripNodeProperties) {
-    var offset = (properties.textOffset != undefined ? properties.textOffset : 20)
+    let offset = (properties.textOffset != undefined ? properties.textOffset: 20)
       * pixelRatio;
 
-    var dx, dy;
-    var placement = ((properties.textPlacement || 'S') + '').toUpperCase();
+    let dx, dy;
+    let placement = ((properties.textPlacement || 'S') + '').toUpperCase();
 
     // horizontal settings
     switch (placement) {
@@ -362,10 +356,10 @@ export class TripGraphLayer {
         dy = offset;
         break;
     }
-    let x : number = pos.x + dx;
-    let y : number = pos.y + dy;
+    let x: number = pos.x + dx;
+    let y: number = pos.y + dy;
 
-    let h : number = TripGraphLayer.setTextStyle(
+    let h: number = TripGraphLayer.setTextStyle(
         context, pixelRatio, properties, defaultTextProp);
 
     let lines = text.split('\n');
@@ -375,9 +369,9 @@ export class TripGraphLayer {
 
     context.lineWidth = 2 * pixelRatio;
 
-    let vshift : number = (lines.length - 1) / 2;
-    for (var i = 0 ; i < lines.length; ++i) {
-      let line_y : number = y + (i - vshift) * h;
+    let vshift: number = (lines.length - 1) / 2;
+    for (let i = 0 ; i < lines.length; ++i) {
+      let line_y: number = y + (i - vshift) * h;
       context.strokeText(lines[i], x, line_y);
       context.fillText(lines[i], x, line_y);
     }
@@ -390,12 +384,12 @@ export class TripGraphLayer {
     if (!iconData) {
       return;
     }
-    var width = (icon.width ? icon.width * pixelRatio : 16 * pixelRatio);
-    var height = (icon.height ? icon.height * pixelRatio : width);
-    var ratioX = icon.ratioX || .5;
-    var ratioY = icon.ratioY || .5;
-    var dx = width * ratioX;
-    var dy = height * ratioY;
+    let width = (icon.width ? icon.width * pixelRatio: 16 * pixelRatio);
+    let height = (icon.height ? icon.height * pixelRatio: width);
+    let ratioX = icon.ratioX || .5;
+    let ratioY = icon.ratioY || .5;
+    let dx = width * ratioX;
+    let dy = height * ratioY;
     if (icon.angle) {
       context.save();
       context.translate(pos.x, pos.y);
@@ -407,9 +401,9 @@ export class TripGraphLayer {
     }
   }
 
-  getLabelIconSize(context: CanvasRenderingContext2D, node: TripNode) : Size2D {
-    var pixelRatio = this.renderer.pixelRatio;
-    var labelIcon = node.labelIcon;
+  getLabelIconSize(context: CanvasRenderingContext2D, node: TripNode): Size2D {
+    let pixelRatio = this.renderer.pixelRatio;
+    let labelIcon = node.labelIcon;
 
     return {
       width: (labelIcon.width || 16) * pixelRatio,
@@ -418,18 +412,18 @@ export class TripGraphLayer {
   };
 
   // Modify TripGraph to place labels at appropriate places
-  placeLabels(context : CanvasRenderingContext2D) {
-    var pinchZoom = this.renderer.pinchZoom;
-    var pixelRatio = this.renderer.pixelRatio;
-    var labelArray = [];
-    var anchorArray = [];
-    for (var i in this.graph.nodes) {
-      var node = this.graph.nodes[i];
+  placeLabels(context: CanvasRenderingContext2D) {
+    let pinchZoom = this.renderer.pinchZoom;
+    let pixelRatio = this.renderer.pixelRatio;
+    let labelArray = [];
+    let anchorArray = [];
+    for (let i in this.graph.nodes) {
+      let node = this.graph.nodes[i];
       if (!node.label && !node.labelIcon) {
         continue;
       }
-      var pos = pinchZoom.viewerPosFromWorldPos(node.coord);
-      var radius = this.defaultRadius;
+      let pos = pinchZoom.viewerPosFromWorldPos(node.coord);
+      let radius = this.defaultRadius;
       if (node.properties && node.properties.radius) {
         radius = node.properties.radius;
       }
@@ -438,9 +432,9 @@ export class TripGraphLayer {
         y: pos.y,
         r: radius * pixelRatio
       });
-      var margin = 2 * pixelRatio;
+      let margin = 2 * pixelRatio;
 
-      var size, name;
+      let size, name;
       if (node.label) {
         size = TripGraphLayer.measureText(context, node.label, pixelRatio,
                                           node.properties, this.defaultTextProp);
@@ -458,30 +452,30 @@ export class TripGraphLayer {
         node: node
       });
     }
-    var labeler = d3.labeler()
+    let labeler = d3.labeler()
       .label(labelArray)
       .anchor(anchorArray)
       .width(this.renderer.canvas.width)
       .height(this.renderer.canvas.height);
 
-    var originalEnergy = labeler.alt_energy();
-    var me = this;
-    var bezierCurves = [];
-    var bezierBbox = [];
-    var bezierLUT = [];
-    for (var e in this.graph.edges) {
-      var curves = this.graph.bezier(this.graph.edges[e]);
-      for (var i in curves) {
-        var curve = curves[i];
+    let originalEnergy = labeler.alt_energy();
+    let me = this;
+    let bezierCurves = [];
+    let bezierBbox = [];
+    let bezierLUT = [];
+    for (let e in this.graph.edges) {
+      let curves = this.graph.bezier(this.graph.edges[e]);
+      for (let i in curves) {
+        let curve = curves[i];
         bezierCurves.push(curve);
-        var bbox = curve.bbox();
+        let bbox = curve.bbox();
         bezierBbox.push({
           min: pinchZoom.viewerPosFromWorldPos(bbox.x.min, bbox.y.min),
           max: pinchZoom.viewerPosFromWorldPos(bbox.x.max, bbox.y.max)
         });
-        var lut = curve.getLUT(30);
-        var transformedLut = [];
-        for (var i in lut) {
+        let lut = curve.getLUT(30);
+        let transformedLut = [];
+        for (let i in lut) {
           transformedLut.push(pinchZoom.viewerPosFromWorldPos(lut[i]));
         }
         bezierLUT.push(transformedLut);
@@ -496,13 +490,13 @@ export class TripGraphLayer {
       labBbox.addPoint(new Point(box.left, box.top));
       labBbox.addPoint(new Point(box.right, box.bottom));
 
-      for (var i in bezierCurves) {
+      for (let i in bezierCurves) {
         if (!BoundingBox.overlaps(bezierBbox[i], labBbox)) {
           continue;
         }
 
-        var lut = bezierLUT[i];
-        for (var j in lut) {
+        let lut = bezierLUT[i];
+        for (let j in lut) {
           if (labBbox.contains(lut[j])) {
             curveOverlaps++;
           }
@@ -511,15 +505,15 @@ export class TripGraphLayer {
       return curveOverlaps * 10 + originalEnergy(index);
     });
 
-    var finalEnergy = labeler.start(5000, 1);
+    let finalEnergy = labeler.start(5000, 1);
 
-    for (var i in labelArray) {
-      var entry = labelArray[i];
+    for (let i in labelArray) {
+      let entry = labelArray[i];
       if (!entry.node.properties) {
         entry.node.properties = {};
       }
-      var properties = entry.node.properties;
-      var halfSize = Point.times(1/2, new Point(entry.width, entry.height));
+      let properties = entry.node.properties;
+      let halfSize = Point.times(1/2, new Point(entry.width, entry.height));
       properties.labelCoord = pinchZoom.worldPosFromViewerPos(entry);
       properties.labelBbox = {
         min: pinchZoom.worldPosFromViewerPos(Point.minus(entry, halfSize)),
@@ -532,12 +526,12 @@ export class TripGraphLayer {
     }
   }
 
-  static shallowCopy( original : any ) : any {
+  static shallowCopy( original: any ): any {
       // First create an empty object with
       // same prototype of our original source
-      var clone = Object.create( Object.getPrototypeOf( original ) ) ;
+      let clone = Object.create( Object.getPrototypeOf( original ) ) ;
 
-      var i , keys = Object.getOwnPropertyNames( original ) ;
+      let i , keys = Object.getOwnPropertyNames( original ) ;
 
       for ( i = 0 ; i < keys.length ; i ++ )
       {
@@ -550,47 +544,47 @@ export class TripGraphLayer {
       return clone ;
   }
 
-  makeFusedGraph(graph : TripGraph) : TripGraph {
+  makeFusedGraph(graph: TripGraph): TripGraph {
     graph = graph || this.graph;
 
-    var renameDict = {};
-    var fuseNodePair = function(a, b) {
-      var r = TripGraphLayer.shallowCopy(a);
+    let renameDict = {};
+    let fuseNodePair = function(a, b) {
+      let r = TripGraphLayer.shallowCopy(a);
       r.name = a.name + '' + b.name;
       r.label = a.label + '\n' + b.label;
       renameDict[a.name] = renameDict[b.name] = r.name;
       return r;
     };
 
-    var lookup = function(name) {
-      var r = name;
+    let lookup = function(name) {
+      let r = name;
       while (r in renameDict) {
         r = renameDict[r];
       }
       return r;
     };
 
-    var pinchZoom = this.renderer.pinchZoom;
-    for (var i in graph.nodes) {
-      var node = graph.nodes[i];
+    let pinchZoom = this.renderer.pinchZoom;
+    for (let i in graph.nodes) {
+      let node = graph.nodes[i];
       node.viewerPos = pinchZoom.viewerPosFromWorldPos(node.coord);
     }
 
-    var keptNodes = [];
-    for (var j in graph.nodes) {
-      var node = graph.nodes[j];
+    let keptNodes = [];
+    for (let j in graph.nodes) {
+      let node = graph.nodes[j];
 
       if (!node.label) {
         continue;
       }
 
-      var r = this.nodeRadius(node);
-      var keep = true;
+      let r = this.nodeRadius(node);
+      let keep = true;
 
-      for (var i in keptNodes) {
-        var n = keptNodes[i];
+      for (let i in keptNodes) {
+        const n = keptNodes[i];
 
-        var dist = Point.dist(n.viewerPos, node.viewerPos);
+        const dist = Point.dist(n.viewerPos, node.viewerPos);
         if (dist < (this.nodeRadius(n) + r)) {
           keptNodes[i] = fuseNodePair(n, node);
           keep = false;
@@ -602,8 +596,8 @@ export class TripGraphLayer {
       }
     }
 
-    for (var j in graph.nodes) {
-      var node = graph.nodes[j];
+    for (let j in graph.nodes) {
+      const node = graph.nodes[j];
 
       if (!node.label) {
         keptNodes.push(node);
@@ -611,21 +605,21 @@ export class TripGraphLayer {
     }
 
 
-    var result = new TripGraph();
+    const result = new TripGraph();
 
-    for (var i in keptNodes) {
-      var n = keptNodes[i];
+    for (let i in keptNodes) {
+      const n = keptNodes[i];
       result.nodes[n.name] = n;
     }
 
-    for (var i in graph.edges) {
-      var edge = graph.edges[i];
+    for (let i in graph.edges) {
+      const edge = graph.edges[i];
 
-      var na = lookup(edge.from);
-      var nb = lookup(edge.to);
+      const na = lookup(edge.from);
+      const nb = lookup(edge.to);
 
       if (na != nb) {
-        var newEdge = TripGraphLayer.shallowCopy(edge);
+        let newEdge = TripGraphLayer.shallowCopy(edge);
         newEdge.from = na;
         newEdge.to = nb;
         newEdge.originalEdge = edge;
@@ -636,19 +630,19 @@ export class TripGraphLayer {
     return result;
   };
 
-  forEachNode(cb : (node : TripNode) => void) {
-    for (var i in this.graph.nodes) {
+  forEachNode(cb: (node: TripNode) => void) {
+    for (let i in this.graph.nodes) {
       cb(this.graph.nodes[i]);
     }
   }
 
-  loadIcons(cb: (err? : Error) => void) {
-    var me = this;
+  loadIcons(cb: (err?: Error) => void) {
+    const me = this;
     this.iconsToLoad = 1;
     this.failedIcons = 0;
-    var iconLoaded = function() {
+    const iconLoaded = function() {
       me.iconsToLoad--;
-      if (cb && me.iconsToLoad == 0) {
+      if (cb && me.iconsToLoad === 0) {
         if (me.failedIcons > 0) {
           cb(new Error(me.failedIcons + ' icons failed to load.'));
         } else {
@@ -659,7 +653,7 @@ export class TripGraphLayer {
 
     this.forEachNode(function(node) {
       if (node.labelIcon) {
-        var url = node.labelIcon.url;
+        const url = node.labelIcon.url;
         me.iconsToLoad++;
         me.renderer.loadImage(node.labelIcon.url,
           function(data) {
@@ -678,7 +672,7 @@ export class TripGraphLayer {
     iconLoaded();
   };
 
-  saveToObj() : TripSaved {
+  saveToObj(): TripSaved {
     return {
       graph: this.graph,
       location: this.renderer.location,
@@ -690,18 +684,18 @@ export class TripGraphLayer {
     };
   };
 
-  saveToString() : string {
+  saveToString(): string {
     return JSON.stringify(this.saveToObj());
   };
 
-  load(data : TripSaved) {
-    if (typeof data == 'string') {
+  load(data: TripSaved) {
+    if (typeof data === 'string') {
       data = JSON.parse(data);
     }
     this.graph = new TripGraph(data.graph);
     this.defaultRadius = data.defaultRadius;
     this.defaultTextProp = data.defaultTextProp;
-    for (var key in data.world) {
+    for (let key in data.world) {
       this.renderer.layers[0].params[key] = data.world[key];
     }
   };
