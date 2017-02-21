@@ -20,11 +20,12 @@ export interface TripNodeProperties {
   fill?: string;
   textOffset?: number;
   textPlacement?: string;
-};
+  skip?: boolean;
+}
 
-export interface TripNode {
-  coord: Point;
-  name: string;
+export interface ITripNode {
+  coord: IPoint | number[];
+  name?: string;
   label?: string;
   labelIcon?: {
     url: string;
@@ -36,4 +37,30 @@ export interface TripNode {
   properties?: TripNodeProperties;
 
   viewerPos?: Point;
+  place?: TripNode;
+}
+
+export class TripNode implements ITripNode {
+  coord: Point;
+  name?: string;
+  label?: string;
+  labelIcon?: {
+    url: string;
+    width?: number;
+    height?: number;
+    autorotate?: number;
+    angle?: number;
+  };
+  properties?: TripNodeProperties;
+
+  viewerPos?: Point;
+  place?: TripNode;
+
+  isSkipped():boolean {
+    if (this.label
+        && (!this.properties || this.properties.skip === undefined)) {
+      return false;
+    }
+    return this.properties.skip;
+  }
 }

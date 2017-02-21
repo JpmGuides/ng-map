@@ -1,10 +1,11 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { TripGraph } from './trip-graph';
+import { TripGraphEditor } from './trip-graph-editor';
 import { TripGraphLayer } from './trip-graph-layer';
 import { TripNode, TripNodeProperties } from './trip-node';
 import { TripEdge } from './trip-edge';
-
-import {IPoint, Point} from './point';
+import { IPoint, Point } from './point';
+import { SeqTrip } from './seq-trip';
 
 export interface Location {
   x: Number;
@@ -42,6 +43,7 @@ declare class PinchZoom {
 
   viewerPosFromWorldPos(x: IPoint | number[] | number, y?: number): Point;
   worldPosFromViewerPos(x: IPoint | number[] | number, y?: number): Point;
+  worldDistanceFromViewerDistance(dist: number): number;
 }
 
 
@@ -51,20 +53,6 @@ declare class WorldBackgroundLayer {
     onCountryClic: (country: {id: string}) => void;
     onSeaClic: () => void;
   });
-};
-
-declare class TripGraphEditor {
-  graph: TripGraph;
-
-  selectedLabel: TripNode;
-  onLabelSelect: (node: TripNode) => void;
-
-  selectedBezier: { edge: TripEdge };
-  onBezierSelect: (bezier: {edge: TripEdge}) => void;
-
-  constructor (renderer: CanvasTilesRenderer, graph: TripGraph);
-  deselectLabel();
-  selectLabel(node: TripNode);
 };
 
 @Component({
@@ -90,6 +78,10 @@ export class TripMapComponent implements OnInit {
   private _editedPropertiesTitle: string;
   private _autoRefresh: number;
 
+  private _visitedPlaceList: TripNode[];
+  private _stages: TripEdge[];
+  private _seqTrip: SeqTrip;
+
   @ViewChild('mapCanvas') canvas: ElementRef;
 
   constructor() {
@@ -97,36 +89,36 @@ export class TripMapComponent implements OnInit {
     this._canvasHeight = 256;
     this._selectedCountry = '';
     this._graph = new TripGraph();
+    this._seqTrip = new SeqTrip();
+    this._seqTrip.replaceTrip([
+      { 'label': 'Bremerhaven', 'coord': [0.52382425, 0.3231958936276962]},
+      { 'label': 'Svolvær', 'coord': [0.5404676111111111, 0.2375687007931659]},
+      { 'label': 'Stokmarknes', 'coord': [0.5414187500000001, 0.23507522492215238]},
+      { 'label': 'Honningsvåg', 'coord': [0.5721399166666666, 0.21562953617976272]},
+      { 'label': 'Tromsø', 'coord': [0.5526530000000001, 0.2266278992534943]},
+      { 'label': 'Bodø', 'coord': [0.5400139166666666, 0.24457168612111502]},
+      { 'label': 'Namsos', 'coord': [0.5319325555555555, 0.26371411496742947]},
+      { 'label': 'Åndalsnes', 'coord': [0.5213530277777778, 0.2755465584709916]},
+      { 'label': 'Ålesund', 'coord': [0.517097, 0.27611988382949165]},
+      { 'label': 'Søgne', 'coord': [0.5216192777777777, 0.3007003117937194]},
+      { 'label': 'Bergen', 'coord': [0.5147893055555556, 0.28820327330752726]},
+      { 'label': 'Lyngdal', 'coord': [0.5196389444444445, 0.30046723926901475]},
+      { 'label': 'Bremerhaven', 'coord': [0.52382425, 0.3231958936276962]}]);
+
+    this._visitedPlaceList = this._seqTrip.places();
+
+    this._stages = this._seqTrip.stages();
+  }
+
+  destination(edge: TripEdge): TripNode {
+    return this._seqTrip.places()[parseInt(edge.to, 10)];
+  }
+  origin(edge: TripEdge): TripNode {
+    return this._seqTrip.places()[parseInt(edge.from, 10)];
   }
 
   ngOnInit() {
-    this._graph = TripGraph.createFromStopovers(
-[
-  {'name': 'Bremerhaven', 'label': 'Bremerhaven', 'coord': new Point([0.52382425, 0.3231958936276962])},
-  {'name': 'Svolvær', 'label': 'Svolvær', 'coord': new Point([0.5404676111111111, 0.2375687007931659])},
-  {'name': 'Svolvær', 'label': 'Svolvær', 'coord': new Point([0.5404676111111111, 0.2375687007931659])},
-  {'name': 'Stokmarknes', 'label': 'Stokmarknes', 'coord': new Point([0.5414187500000001, 0.23507522492215238])},
-  {'name': 'Stokmarknes', 'label': 'Stokmarknes', 'coord': new Point([0.5414187500000001, 0.23507522492215238])},
-  {'name': 'Honningsvåg', 'label': 'Honningsvåg', 'coord': new Point([0.5721399166666666, 0.21562953617976272])},
-  {'name': 'Honningsvåg', 'label': 'Honningsvåg', 'coord': new Point([0.5721399166666666, 0.21562953617976272])},
-  {'name': 'Tromsø', 'label': 'Tromsø', 'coord': new Point([0.5526530000000001, 0.2266278992534943])},
-  {'name': 'Tromsø', 'label': 'Tromsø', 'coord': new Point([0.5526530000000001, 0.2266278992534943])},
-  {'name': 'Bodø', 'label': 'Bodø', 'coord': new Point([0.5400139166666666, 0.24457168612111502])},
-  {'name': 'Bodø', 'label': 'Bodø', 'coord': new Point([0.5400139166666666, 0.24457168612111502])},
-  {'name': 'Namsos', 'label': 'Namsos', 'coord': new Point([0.5319325555555555, 0.26371411496742947])},
-  {'name': 'Namsos', 'label': 'Namsos', 'coord': new Point([0.5319325555555555, 0.26371411496742947])},
-  {'name': 'Åndalsnes', 'label': 'Åndalsnes', 'coord': new Point([0.5213530277777778, 0.2755465584709916])},
-  {'name': 'Åndalsnes', 'label': 'Åndalsnes', 'coord': new Point([0.5213530277777778, 0.2755465584709916])},
-  {'name': 'Ålesund', 'label': 'Ålesund', 'coord': new Point([0.517097, 0.27611988382949165])},
-  {'name': 'Ålesund', 'label': 'Ålesund', 'coord': new Point([0.517097, 0.27611988382949165])},
-  {'name': 'Søgne', 'label': 'Søgne', 'coord': new Point([0.5216192777777777, 0.3007003117937194])},
-  {'name': 'Bergen', 'label': 'Bergen', 'coord': new Point([0.5147893055555556, 0.28820327330752726])},
-  {'name': 'Bergen', 'label': 'Bergen', 'coord': new Point([0.5147893055555556, 0.28820327330752726])},
-  {'name': 'Lyngdal', 'label': 'Lyngdal', 'coord': new Point([0.5196389444444445, 0.30046723926901475])},
-  {'name': 'Lyngdal', 'label': 'Lyngdal', 'coord': new Point([0.5196389444444445, 0.30046723926901475])},
-  {'name': 'Bremerhaven', 'label': 'Bremerhaven', 'coord': new Point([0.52382425, 0.3231958936276962])}]
-);
-}
+  }
 
   ngAfterViewInit() {
     this._renderer = new CanvasTilesRenderer({
@@ -173,6 +165,7 @@ export class TripMapComponent implements OnInit {
           this.clearSelection();
         }
       };
+      this.recreate();
 
     }, 10);
 
@@ -217,13 +210,16 @@ export class TripMapComponent implements OnInit {
       }
       if (node !== this._editor.selectedLabel) {
         const savedCallback = this._editor.onLabelSelect;
+        const savedBezierCallback = this._editor.onBezierSelect;
         this._editor.onLabelSelect = () => {};
+        this._editor.onBezierSelect = () => {};
         if (node.name in this._editor.graph.nodes) {
           this._editor.selectLabel(node);
         } else {
           this._editor.deselectLabel();
         }
         this._editor.onLabelSelect = savedCallback;
+        this._editor.onBezierSelect = savedBezierCallback;
       }
     }
   }
@@ -245,11 +241,33 @@ export class TripMapComponent implements OnInit {
     return r;
   }
 
-  removeNode(node: TripNode) {
-    this._graph.edges = this._graph.edges.filter(
-      (e) => (e.from !== node.name) && (e.to !== node.name));
-    delete this._graph.nodes[node.name];
-    this.resetCurves();
+  isSkipped(node: TripNode): boolean {
+    if (!node.properties || node.properties.skip === undefined) {
+      return false;
+    }
+    return node.properties.skip;
+  }
+
+  toggleHideEdge(edge: TripEdge) {
+    if (edge.hidden) {
+      delete edge.hidden;
+    } else {
+      edge.hidden = true;
+    }
+    this.recreate();
+  }
+
+  toggleSkipNode(node: TripNode) {
+    if (this.isSkipped(node)) {
+      delete node.properties.skip;
+    } else {
+      if (!node.properties) {
+        node.properties = { skip: true };
+      } else {
+        node.properties.skip = true;
+      }
+    }
+    this.recreate();
   }
 
   removeEdge(edge: TripEdge) {
@@ -268,8 +286,6 @@ export class TripMapComponent implements OnInit {
   }
 
   placeLabels() {
-    this._tripLayer.graph = this._tripLayer.makeFusedGraph(this._graph);
-    this._editor.graph = this._tripLayer.graph;
     this._tripLayer.placeLabels(this._renderer.canvas.getContext('2d'));
     this._renderer.refresh();
   };
@@ -288,5 +304,11 @@ export class TripMapComponent implements OnInit {
 
     this._tripLayer.placeLabels(this._renderer.canvas.getContext('2d'));
     this._renderer.refresh();
+  }
+
+  recreate() {
+    this._tripLayer.graph = this._graph = this._editor.graph =
+      this._seqTrip.makeGraph(this._tripLayer);
+    this.update();
   }
 }

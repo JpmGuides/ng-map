@@ -58,7 +58,7 @@ export class TripGraphLayer {
   public graph: TripGraph;
   public defaultTextProp: TripNodeProperties;
 
-  private renderer: CanvasTilesRenderer;
+  public renderer: CanvasTilesRenderer;
   private defaultRadius: number;
   private icons: any;
 
@@ -82,23 +82,22 @@ export class TripGraphLayer {
   }
 
   draw(canvas: any, pinchZoom: any, bboxTopLeft: any, bboxBottomRight: any) {
-    let graph = this.graph;
-    let me = this;
-    let context = canvas.getContext('2d');
-    let pixelRatio = this.renderer.pixelRatio;
+    const graph = this.graph;
+    const me = this;
+    const context = canvas.getContext('2d');
+    const pixelRatio = this.renderer.pixelRatio;
 
     graph.edges.forEach(function(edge) {
       me.setEdgeStrokeStyle(context, edge);
 
-      let bezierCurves = graph.bezier(edge);
-      for (let i in bezierCurves ) {
-        let bezier = bezierCurves[i];
+      const bezierCurves = graph.bezier(edge);
+      for (let bezier of bezierCurves ) {
         TripGraphLayer.drawBezier(context, pinchZoom, bezier, pixelRatio);
       }
       if (bezierCurves.length > 1 && edge.drawMiddlePoint) {
         for (let i in bezierCurves) {
-          let p = pinchZoom.viewerPosFromWorldPos(bezierCurves[i].points[3]);
-          let radius = 5 * pixelRatio;
+          const p = pinchZoom.viewerPosFromWorldPos(bezierCurves[i].points[3]);
+          const radius = 5 * pixelRatio;
           context.beginPath();
           context.arc(p.x, p.y, radius, 0, 2 * Math.PI, false);
           context.fillStype = '#000000';
@@ -109,55 +108,58 @@ export class TripGraphLayer {
 
 
     for (let i in graph.nodes) {
-      let node = graph.nodes[i];
+      const node = graph.nodes[i];
       node.viewerPos = pinchZoom.viewerPosFromWorldPos(node.coord);
     }
 
     for (let i in graph.nodes) {
-      this.drawNodePoint(context, pinchZoom, graph.nodes[i]);
+      const node = graph.nodes[i];
+      this.drawNodePoint(context, pinchZoom, node);
     }
     for (let i in graph.nodes) {
-      this.drawLeaderLine(context, pinchZoom, graph.nodes[i]);
+      const node = graph.nodes[i];
+      this.drawLeaderLine(context, pinchZoom, node);
     }
     for (let i in graph.nodes) {
-      this.drawNodeLabel(context, pinchZoom, graph.nodes[i]);
+      const node = graph.nodes[i];
+      this.drawNodeLabel(context, pinchZoom, node);
     }
   }
 
   static drawBezier(context: CanvasRenderingContext2D, pinchZoom: any,
                     curve: any, pixelRatio: number) {
 
-    let ptArray = new Array(8);
-    let points = curve.points;
+    const ptArray = new Array(8);
+    const points = curve.points;
     for (let j = 0; j < 4; ++j) {
-      let p = pinchZoom.viewerPosFromWorldPos(points[j]);
+      const p = pinchZoom.viewerPosFromWorldPos(points[j]);
       ptArray[j * 2] = p.x;
       ptArray[j * 2 + 1] = p.y;
     }
 
-    let bezier = new Bezier(ptArray);
-    let l = bezier.length();
-    let numArrows = Math.min(2, Math.floor(l / (pixelRatio * 30)));
-    let size = 10 * pixelRatio;
+    const bezier = new Bezier(ptArray);
+    const l = bezier.length();
+    const numArrows = Math.min(2, Math.floor(l / (pixelRatio * 30)));
+    const size = 10 * pixelRatio;
 
     for (let i = 1; i < numArrows; ++i) {
-      let t = i / numArrows;
+      const t = i / numArrows;
       let p = bezier.get(t);
-      let n = bezier.normal(t);
-      let tangent = new Point(bezier.derivative(t));
+      const n = bezier.normal(t);
+      const tangent = new Point(bezier.derivative(t));
       tangent.mul(size / tangent.norm());
       p = Point.plus(p, Point.times(.5, tangent));
-      let base = Point.minus(p, tangent);
+      const base = Point.minus(p, tangent);
 
       context.beginPath();
-      context.moveTo(base.x + (size/2) * n.x, base.y + (size/2) * n.y);
+      context.moveTo(base.x + (size / 2) * n.x, base.y + (size / 2) * n.y);
       context.lineTo(p.x, p.y);
-      context.lineTo(base.x - (size/2) * n.x, base.y - (size/2) * n.y);
+      context.lineTo(base.x - (size / 2) * n.x, base.y - (size / 2) * n.y);
       context.closePath();
       context.fill();
     }
 
-    let viewcurve = bezier.points;
+    const viewcurve = bezier.points;
 
     context.beginPath();
     context.moveTo(viewcurve[0].x, viewcurve[0].y);
@@ -549,7 +551,7 @@ export class TripGraphLayer {
     let renameDict = {};
     let fuseNodePair = function(a, b) {
       let r = TripGraphLayer.shallowCopy(a);
-      r.name = a.name + '' + b.name;
+      r.name = a.name + ',' + b.name;
       r.label = a.label + '\n' + b.label;
       renameDict[a.name] = renameDict[b.name] = r.name;
       return r;
@@ -673,7 +675,8 @@ export class TripGraphLayer {
 
   saveToObj(): TripSaved {
     return {
-      graph: this.graph,
+      places: [],
+      stages: [],
       location: this.renderer.location,
       defaultRadius: this.defaultRadius,
       defaultTextProp: this.defaultTextProp,
@@ -691,7 +694,7 @@ export class TripGraphLayer {
     if (typeof data === 'string') {
       data = JSON.parse(data);
     }
-    this.graph = new TripGraph(data.graph);
+    this.graph = new TripGraph();
     this.defaultRadius = data.defaultRadius;
     this.defaultTextProp = data.defaultTextProp;
     for (let key in data.world) {

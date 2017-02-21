@@ -4,6 +4,7 @@
            [title]="_editedPropertiesTitle"></text-prop>
 
 <div>
+  <button (click)="recreate()">Create</button>
   <button (click)="update()">Update</button>
   <button (click)="placeLabels()">Place labels</button>
   <button (click)="resetCurves()">Reset curves</button>
@@ -21,30 +22,35 @@
 
 <span class="inline">
 <ul>
-  <li>
+  <li *ngIf="_stages && _visitedPlaceList">
     <h3>Edge</h3>
     <ul>
-      <li *ngFor="let e of _graph.edges"
+      <li *ngFor="let e of _stages"
+        (click)="selectEdge(e)"
         [class.nodeSelected]="_selectedEdge && _selectedEdge.from == e.from && _selectedEdge.to == e.to"
+        [class.nodeSkipped]="e.hidden"
         >
-      {{e.from}} - {{ e.to }}
+      {{ origin(e).label }} - {{ destination(e).label }}
         <button class="delete"
-          (click)="removeEdge(e); $event.stopPropagation()">x</button>
+                (click)="toggleHideEdge(e); $event.stopPropagation()">
+          {{ e.hidden? '+' : '-' }}</button>
       </li>
     </ul>
   </li>
   <li>
-    <h3>Nodes</h3>
-    <ul>
-      <li *ngFor="let n of nodeArray()"
+    <h3>Visited places</h3>
+    <ol>
+      <li *ngFor="let n of _visitedPlaceList"
         [class.nodeSelected]="_selectedNode == n"
+        [class.nodeSkipped]="isSkipped(n)"
         (click)="selectNode(n)"
-        >{{n.name}}
+        >{{n.label}}
 
         <button class="delete"
-          (click)="removeNode(n); $event.stopPropagation()">x</button>
+          (click)="toggleSkipNode(n); $event.stopPropagation()">
+          {{ isSkipped(n) ? '+' : '-'}}</button>
       </li>
-    </ul>
+    </ol>
   </li>
 </ul>
 </span>

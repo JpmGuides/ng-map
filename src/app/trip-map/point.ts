@@ -25,6 +25,19 @@ export class Point implements IPoint {
 
   static norm(a: IPoint): number { return Math.sqrt(a.x * a.x + a.y * a.y); };
 
+  static nearest(target: IPoint, points: Point[]): Point {
+    let best;
+    let bestDist;
+    for (let p of points) {
+      const dist = Point.dist(p, target);
+      if (best === undefined || dist < bestDist) {
+        bestDist = dist;
+        best = p;
+      }
+    }
+    return best;
+  };
+
   constructor(x: IPoint | number[] | number, y?: number) {
     if (typeof(x) === 'number' && typeof(y) === 'number') {
       this.x = x;
