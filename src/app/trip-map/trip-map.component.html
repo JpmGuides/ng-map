@@ -1,29 +1,40 @@
-<span class="inline">
 
-<text-prop [(properties)]="_editedProperties"
-           [title]="_editedPropertiesTitle"></text-prop>
-
-<div>
-  <button (click)="recreate()">Create</button>
-  <button (click)="update()">Update</button>
-  <button (click)="placeLabels()">Place labels</button>
-  <button (click)="resetCurves()">Reset curves</button>
-  <button (click)="setFrame()">Reset frame</button>
-</div>
-
-<canvas
-  #mapCanvas
-  [attr.width] = '_canvasWidth'
-  [attr.height] = '_canvasHeight'></canvas>
-
-<p *ngIf="_selectedCountry">Selected country: {{_selectedCountry}}</p>
-<p *ngIf="_selectedNode">Selected label: {{_selectedNode.name}}</p>
-</span>
-
-<span class="inline">
-<ul>
-  <li *ngIf="_stages && _visitedPlaceList">
-    <h3>Edge</h3>
+<div class="maptabset">
+<tabset >
+  <tab heading="Settings">
+    <text-prop [(properties)]="_editedProperties"
+               [title]="_editedPropertiesTitle"></text-prop>
+    <button (click)="recreate()">Create</button>
+    <button (click)="update()">Update</button>
+    <button (click)="placeLabels()">Place labels</button>
+    <button (click)="resetCurves()">Reset curves</button>
+    <button (click)="setFrame()">Reset frame</button>
+  </tab>
+  <tab heading="Places">
+    <button (click)="recreate()" class="btn-primary">Update</button>
+    <accordion>
+      <accordion-group *ngFor="let n of _visitedPlaceList"
+               [class.nodeSkipped]="isSkipped(n)"
+               >
+        <div accordion-heading>
+          <input type="checkbox" 
+           [ngModel]="!isSkipped(n)"
+            (click)="toggleSkipNode(n); $event.stopPropagation();">
+          {{n.label}}
+        </div>
+        <div *ngIf="!isSkipped(n)" class="btn-group">
+          <label class="btn btn-default" [ngModel]="n.properties.landing"
+                 (click)="toggleProperty(n, 'landing')"
+                 btnCheckbox><img src="/assets/landing.svg" alt="Landing" width="16px" height="16px" /></label>
+          <label class="btn btn-default" [ngModel]="n.properties.takeoff"
+                 (click)="toggleProperty(n, 'takeoff')"
+                 btnCheckbox><img src="/assets/takeoff.svg" alt="Take-off" width="16px" height="16px" /></label>
+        </div>
+      </accordion-group>
+    </accordion>
+  </tab>
+  <tab heading = "Journey">
+    <button (click)="recreate()" class="btn-primary">Update</button>
     <ul>
       <li *ngFor="let e of _stages"
         (click)="selectEdge(e)"
@@ -31,27 +42,18 @@
         [class.nodeSkipped]="e.hidden"
         >
       {{ origin(e).label }} - {{ destination(e).label }}
-        <button class="delete"
-                (click)="toggleHideEdge(e); $event.stopPropagation()">
-          {{ e.hidden? '+' : '-' }}</button>
+        <input type="checkbox" 
+         [ngModel]="!e.hidden"
+          (click)="toggleHideEdge(e)">
       </li>
     </ul>
-  </li>
-  <li>
-    <h3>Visited places</h3>
-    <ol>
-      <li *ngFor="let n of _visitedPlaceList"
-        [class.nodeSelected]="_selectedNode == n"
-        [class.nodeSkipped]="isSkipped(n)"
-        (click)="selectNode(n)"
-        >{{n.label}}
+  </tab>
+</tabset>
+</div>
 
-        <button class="delete"
-          (click)="toggleSkipNode(n); $event.stopPropagation()">
-          {{ isSkipped(n) ? '+' : '-'}}</button>
-      </li>
-    </ol>
-  </li>
-</ul>
-</span>
+<canvas
+  #mapCanvas
+  [attr.width] = '_canvasWidth'
+  [attr.height] = '_canvasHeight'></canvas>
+
 

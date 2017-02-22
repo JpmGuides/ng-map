@@ -21,6 +21,8 @@ export interface TripNodeProperties {
   textOffset?: number;
   textPlacement?: string;
   skip?: boolean;
+  landing?: boolean;
+  takeoff?: boolean;
 }
 
 export interface ITripNode {

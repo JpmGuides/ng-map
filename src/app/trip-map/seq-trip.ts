@@ -12,6 +12,24 @@ export class SeqTrip {
     this.reset();
   }
 
+  private static makePlaneIcon(verb: string, placeNode: TripNode): TripNode {
+    const iconNode = new TripNode();
+    iconNode.name = placeNode.name + '-' + verb,
+    iconNode.labelIcon = {
+        url: '/assets/plane.png',
+        width: 20,
+        autorotate: (Math.PI/2) * (verb === 'landing' ? 1 : -1)
+    };
+    iconNode.coord = placeNode.coord;
+    iconNode.properties = {
+        point: false,
+        leaderLine: 'center',
+        dashed: [5,3],
+        leaderLineWidth: 2
+    };
+    return iconNode;
+  }
+
   places(): TripNode[] {
     return this._tripData.places;
   }
@@ -24,6 +42,7 @@ export class SeqTrip {
     this._tripData = {
       places: [],
       stages: [],
+      additionalPlaces: [],
       location: { x: .5, y: .5, scale: 1 },
       defaultRadius: 8,
       width: 400,
@@ -33,6 +52,7 @@ export class SeqTrip {
     };
   }
 
+
   replaceTrip(places: ITripNode[]) {
     this.reset();
 
@@ -41,6 +61,8 @@ export class SeqTrip {
       const n = new TripNode();
       n.coord = new Point(p.coord);
       n.name = '' + i;
+      n.properties = { };
+
       const toCopy = ['labelIcon', 'label', 'properties', 'viewerPos'];
       for (let field of toCopy) {
         if (field in p) {
@@ -52,6 +74,7 @@ export class SeqTrip {
     }
 
     this.generateStages();
+    this.updateLandingsAndTakeoff();
   }
 
   private generateStages() {
@@ -69,6 +92,34 @@ export class SeqTrip {
             ((i + 1) < places.length ? places[i + 1].coord : undefined)
             )
       });
+    }
+  }
+
+  private updateLandingsAndTakeoff() {
+    const index : { [key: string]: number } = { };
+    const additionalPlaces = this._tripData.additionalPlaces;
+
+    for (let i = 0; i < additionalPlaces.length; ++i) {
+      index[additionalPlaces[i].name] = i;
+    }
+
+    const verbs = ['landing', 'takeoff'];
+
+    for (let n of this._tripData.places) {
+      for (let verb of verbs) {
+        const name = n.name + '-' + verb;
+        if (n.properties[verb]) {
+          // landing/takeoff wanted
+          if (!(name in index)) {
+            additionalPlaces.push(SeqTrip.makePlaneIcon(verb, n));
+          }
+        } else {
+          // landing/takeoff not wanted
+          if (name in index) {
+            additionalPlaces.splice(index[name], 1);
+          }
+        }
+      }
     }
   }
 
@@ -146,19 +197,14 @@ export class SeqTrip {
       }
     }
 
-    /*
-    for (let j in graph.nodes) {
-      const node = graph.nodes[j];
-
-      if (!node.label) {
-        keptNodes.push(node);
-      }
-    }
-   */
-
     const result = new TripGraph();
 
     for (let n of keptNodes) {
+      result.nodes[n.name] = n;
+    }
+
+    this.updateLandingsAndTakeoff();
+    for (let n of this._tripData.additionalPlaces) {
       result.nodes[n.name] = n;
     }
 

@@ -9,6 +9,10 @@ import { AppComponent } from './app.component';
 import { TripMapComponent } from './trip-map/trip-map.component';
 import { TextPropComponent } from './text-prop/text-prop.component';
 
+import { ButtonsModule } from 'ng2-bootstrap/buttons';
+import { AccordionModule } from 'ng2-bootstrap/accordion';
+import { TabsModule } from 'ng2-bootstrap/tabs';
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -19,7 +23,10 @@ import { TextPropComponent } from './text-prop/text-prop.component';
     BrowserModule,
     FormsModule,
     HttpModule,
-    ColorPickerModule
+    ColorPickerModule,
+    AccordionModule.forRoot(),
+    ButtonsModule.forRoot(),
+    TabsModule.forRoot(),
   ],
   providers: [],
   bootstrap: [AppComponent]

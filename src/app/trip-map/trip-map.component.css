@@ -2,6 +2,10 @@
   display: inline-block;
 }
 
+canvas {
+  float: left;
+}
+
 .nodeSelected {
   font-weight: bold;
 }
@@ -15,4 +19,20 @@ button.delete {
   margin-right: .8em;
   background-color: lightgray;
   color:red;
+}
+div.maptabset {
+  width: 300px;
+  float: left;
+}
+
+.maptabset /deep/.panel-title {
+  font-size: 12px;
+}
+
+.maptabset /deep/.panel-heading {
+  padding: 3px 12px;
+}
+
+tab > button {
+  width: 100%;
 }

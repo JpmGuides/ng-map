@@ -146,8 +146,6 @@ export class TripMapComponent implements OnInit {
     });
     this._renderer.addLayer(this._tripLayer);
 
-    this._tripLayer.loadIcons((err) => { this._renderer.refresh(); });
-
     // setTimeout is necessary to restart an angular check cycle.
     // In ngAfterViewInit, we're not supposed to change the state.
     setTimeout(() => {
@@ -254,7 +252,7 @@ export class TripMapComponent implements OnInit {
     } else {
       edge.hidden = true;
     }
-    this.recreate();
+    //this.recreate();
   }
 
   toggleSkipNode(node: TripNode) {
@@ -267,7 +265,11 @@ export class TripMapComponent implements OnInit {
         node.properties.skip = true;
       }
     }
-    this.recreate();
+    //this.recreate();
+  }
+
+  toggleProperty(node: TripNode, property: string) {
+    node.properties[property] = !node.properties[property];
   }
 
   removeEdge(edge: TripEdge) {
@@ -309,6 +311,8 @@ export class TripMapComponent implements OnInit {
   recreate() {
     this._tripLayer.graph = this._graph = this._editor.graph =
       this._seqTrip.makeGraph(this._tripLayer);
+    this._tripLayer.loadIcons((err) => { this._renderer.refresh(); });
+
     this.update();
   }
 }

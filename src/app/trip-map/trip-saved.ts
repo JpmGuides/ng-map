@@ -6,6 +6,8 @@ import { TripEdge } from './trip-edge';
 export interface TripSaved {
   places: TripNode[];
   stages: TripEdge[];
+  additionalPlaces: TripNode[];
+
   location: Tiles.Location;
   defaultRadius: number;
   defaultTextProp: any;

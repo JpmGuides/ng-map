@@ -677,6 +677,7 @@ export class TripGraphLayer {
     return {
       places: [],
       stages: [],
+      additionalPlaces: [],
       location: this.renderer.location,
       defaultRadius: this.defaultRadius,
       defaultTextProp: this.defaultTextProp,
