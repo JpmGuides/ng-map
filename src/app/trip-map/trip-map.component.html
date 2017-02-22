@@ -2,14 +2,31 @@
 <div class="maptabset">
 <tabset >
   <tab heading="Settings">
-    <text-prop [(properties)]="_editedProperties"
-               [title]="_editedPropertiesTitle"></text-prop>
-    <button (click)="recreate()">Create</button>
-    <button (click)="update()">Update</button>
-    <button (click)="placeLabels()">Place labels</button>
-    <button (click)="resetCurves()">Reset curves</button>
-    <button (click)="setFrame()">Reset frame</button>
-  </tab>
+    <button (click)="recreate()" class="btn-primary">Update</button>
+    <div  class="panel panel-default">
+    <div class="panel-body">
+
+    <div  class="panel panel-default">
+    <div class="panel-body">
+      <select [ngModel]="_pageSizeName" (change)="setPageSize($event.target.value)">
+         <option *ngFor="let x of _pageSizes"
+                 class="form-control"
+                 required
+                 [value]="x.key()"
+                 >{{x.name}}</option>
+      </select>
+    </div>
+    </div>
+    <div  class="panel panel-default">
+    <div class="panel-body">
+      <text-prop [(properties)]="_editedProperties"
+                 [title]="_editedPropertiesTitle"></text-prop>
+    </div>
+
+    <button (click)="setFrame()">Reset map frame</button>
+    </div>
+    </div>
+    </div></tab>
   <tab heading="Places">
     <button (click)="recreate()" class="btn-primary">Update</button>
     <accordion>
@@ -47,13 +64,16 @@
           (click)="toggleHideEdge(e)">
       </li>
     </ul>
+    <button (click)="resetCurves()" class="btn-default">Reset curves</button>
   </tab>
 </tabset>
 </div>
 
 <canvas
   #mapCanvas
-  [attr.width] = '_canvasWidth'
-  [attr.height] = '_canvasHeight'></canvas>
+  [style.width.px]="_canvasWidth"
+  [style.height.px]="_canvasHeight"
+  [attr.width] = '_canvasWidth * pixelRatio()'
+  [attr.height] = '_canvasHeight * pixelRatio()'></canvas>
 
 

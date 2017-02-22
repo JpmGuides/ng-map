@@ -11,6 +11,8 @@ export interface TripSaved {
   location: Tiles.Location;
   defaultRadius: number;
   defaultTextProp: any;
+
+  // unit: mm
   width: number;
   height: number;
   world: any;

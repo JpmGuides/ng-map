@@ -38,6 +38,14 @@ export class SeqTrip {
     return this._tripData.stages;
   }
 
+  width(): number { return this._tripData.width; }
+  height(): number { return this._tripData.height; }
+
+  setSize(width: number, height: number) {
+    this._tripData.width = width;
+    this._tripData.height = height;
+  }
+
   reset() {
     this._tripData = {
       places: [],

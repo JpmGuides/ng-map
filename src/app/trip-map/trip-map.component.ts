@@ -1,4 +1,5 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+
 import { TripGraph } from './trip-graph';
 import { TripGraphEditor } from './trip-graph-editor';
 import { TripGraphLayer } from './trip-graph-layer';
@@ -55,15 +56,28 @@ declare class WorldBackgroundLayer {
   });
 };
 
+class PageSize {
+
+  constructor(
+    public name: string,
+    public width_mm: number,
+    public height_mm: number) { }
+
+  static mmToPoint = 2.83465;
+  widthPt() { return Math.floor(this.width_mm * PageSize.mmToPoint); }
+  heightPt() { return Math.floor(this.height_mm * PageSize.mmToPoint); }
+  key(): string { return this.width_mm + 'x' + this.height_mm; }
+};
+
 @Component({
   selector: 'trip-map',
   templateUrl: 'trip-map.component.html',
-  styleUrls: ['./trip-map.component.css']
+  styleUrls: ['./trip-map.component.css'],
 })
 export class TripMapComponent implements OnInit {
 
-  private _canvasWidth: Number;
-  private _canvasHeight: Number;
+  private _canvasWidth: number;
+  private _canvasHeight: number;
   private _renderer: CanvasTilesRenderer;
   private _worldLayer: WorldBackgroundLayer;
   private _tripLayer: TripGraphLayer;
@@ -82,14 +96,30 @@ export class TripMapComponent implements OnInit {
   private _stages: TripEdge[];
   private _seqTrip: SeqTrip;
 
+  _pageSizes : PageSize[];
+  _pageSizeName : string;
+  _pageSizeMap: { [key: string] : PageSize };
+
   @ViewChild('mapCanvas') canvas: ElementRef;
 
   constructor() {
-    this._canvasWidth = 256;
-    this._canvasHeight = 256;
+    this._canvasWidth = 512;
+    this._canvasHeight = 512;
     this._selectedCountry = '';
     this._graph = new TripGraph();
     this._seqTrip = new SeqTrip();
+    this._pageSizes = [
+      new PageSize("A5 landscape", 210, 148),
+      new PageSize("A5 portrait", 148, 210),
+      new PageSize("A6 landscape", 105, 74),
+      new PageSize("A6 portrait", 74, 105),
+    ];
+    this._pageSizeMap = {};
+    for (let s of this._pageSizes) {
+      this._pageSizeMap[s.key()] = s;
+    }
+    this.setPageSize(this._pageSizes[0].key());
+
     this._seqTrip.replaceTrip([
       { 'label': 'Bremerhaven', 'coord': [0.52382425, 0.3231958936276962]},
       { 'label': 'Svolvær', 'coord': [0.5404676111111111, 0.2375687007931659]},
@@ -118,6 +148,13 @@ export class TripMapComponent implements OnInit {
   }
 
   ngOnInit() {
+  }
+ 
+  pixelRatio() : number {
+    if (this._renderer && this._renderer.pixelRatio) {
+      return this._renderer.pixelRatio;
+    }
+    return 1;
   }
 
   ngAfterViewInit() {
@@ -163,7 +200,12 @@ export class TripMapComponent implements OnInit {
           this.clearSelection();
         }
       };
-      this.recreate();
+
+      if (1) {
+        this.reset(); // resets zoom and translation
+      } else {
+        this.recreate();  // keep existing location
+      }
 
     }, 10);
 
@@ -281,6 +323,9 @@ export class TripMapComponent implements OnInit {
   }
 
   setFrame(width?: number, height?: number) {
+    if (!this._renderer) {
+      return;
+    }
     const canvas = this._renderer.canvas;
     const w = width || canvas.width;
     const h = height || canvas.height;
@@ -293,7 +338,6 @@ export class TripMapComponent implements OnInit {
   };
 
   update() {
-    this.setFrame();
     this.placeLabels();
   }
 
@@ -313,6 +357,26 @@ export class TripMapComponent implements OnInit {
       this._seqTrip.makeGraph(this._tripLayer);
     this._tripLayer.loadIcons((err) => { this._renderer.refresh(); });
 
-    this.update();
+    this.placeLabels();
+  }
+
+  reset() {
+    this._tripLayer.graph = this._graph = this._editor.graph =
+      this._seqTrip.makeGraph(this._tripLayer);
+    this._tripLayer.loadIcons((err) => { this._renderer.refresh(); });
+    this.setFrame();
+    this.placeLabels();
+  }
+
+  setPageSize(pageSizeName: string) {
+    const pageSize = this._pageSizeMap[pageSizeName];
+    if (pageSize) {
+      this._pageSizeName = pageSizeName;
+      this._canvasWidth = pageSize.widthPt();
+      this._canvasHeight = pageSize.heightPt();
+      this._seqTrip.setSize(this._canvasWidth, this._canvasHeight);
+      this.setFrame(this._canvasWidth, this._canvasHeight);
+      setTimeout(() => { this.placeLabels(); }, 20);
+    }
   }
 }
