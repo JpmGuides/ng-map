@@ -683,7 +683,10 @@ export class TripGraphLayer {
       defaultTextProp: this.defaultTextProp,
       width: this.renderer.canvas.width / this.renderer.pixelRatio,
       height: this.renderer.canvas.height / this.renderer.pixelRatio,
-      world: this.renderer.layers[0].save()
+      world: this.renderer.layers[0].save(),
+      seaColor: '',
+      borderColor: '',
+      landColor: '',
     };
   };
 

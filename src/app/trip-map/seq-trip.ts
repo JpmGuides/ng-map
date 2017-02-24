@@ -18,13 +18,13 @@ export class SeqTrip {
     iconNode.labelIcon = {
         url: '/assets/plane.png',
         width: 20,
-        autorotate: (Math.PI/2) * (verb === 'landing' ? 1 : -1)
+        autorotate: (Math.PI / 2) * (verb === 'landing' ? 1 : -1)
     };
     iconNode.coord = placeNode.coord;
     iconNode.properties = {
         point: false,
         leaderLine: 'center',
-        dashed: [5,3],
+        dashed: [5, 3],
         leaderLineWidth: 2
     };
     return iconNode;
@@ -55,6 +55,9 @@ export class SeqTrip {
       defaultRadius: 8,
       width: 400,
       height: 400,
+      borderColor: '#ffffff',
+      landColor: '#cccccc',
+      seaColor: '#c4e3ff',
       world: undefined,
       defaultTextProp: { }
     };
@@ -244,5 +247,11 @@ export class SeqTrip {
     return result;
   }
 
+  seaColor() : string { return this._tripData.seaColor; }
+  setSeaColor(c: string) { this._tripData.seaColor = c; }
+  landColor() : string { return this._tripData.landColor; }
+  setLandColor(c: string) { this._tripData.landColor = c; }
+  borderColor() : string { return this._tripData.borderColor; }
+  setBorderColor(c: string) { this._tripData.borderColor = c; }
 }
 

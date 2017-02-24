@@ -14,6 +14,11 @@ canvas {
   color: gray;
 }
 
+.small {
+  width: 25px;
+  height: 25px;
+}
+
 button.delete {
   margin-top: 2px;
   margin-right: .8em;
@@ -21,7 +26,6 @@ button.delete {
   color:red;
 }
 div.maptabset {
-  width: 300px;
   float: left;
 }
 
@@ -36,3 +40,21 @@ div.maptabset {
 tab > button {
   width: 100%;
 }
+
+.square {
+  width: 10px;
+  height: 10px;
+  display: inline-block;
+  margin: 3px;
+}
+
+tabset /deep/.nav-stacked {
+  float: left;
+}
+tabset /deep/.tab-content {
+  float: left;
+  width: 300px;
+  margin-right: 19px;
+  border-right: 1px solid #ddd;
+}
+

@@ -1,33 +1,68 @@
 
 <div class="maptabset">
-<tabset>
-  <tab heading="Settings">
+<tabset [vertical]="true" type="pills">
+  <tab>
+    <template tabHeading>
+      <i class="glyphicon glyphicon-cog"></i>
+    </template>
     <button (click)="recreate()" class="btn-primary">Update</button>
     <div class="panel panel-default">
-    <div class="panel-body">
+      <div class="panel-body">
 
-    <div  class="panel panel-default">
-    <div class="panel-body">
-      <select [ngModel]="_pageSizeName" (change)="setPageSize($event.target.value)">
-         <option *ngFor="let x of _pageSizes"
-                 class="form-control"
-                 required
-                 [value]="x.key()"
-                 >{{x.name}}</option>
-      </select>
-    </div>
-    </div>
-    <div  class="panel panel-default">
-    <div class="panel-body">
-      <text-prop [(properties)]="_editedProperties"
-                 [title]="_editedPropertiesTitle"></text-prop>
-    </div>
+        <div  class="panel panel-default">
+          <div class="panel-body">
+            <select [ngModel]="_pageSizeName" (change)="setPageSize($event.target.value)">
+               <option *ngFor="let x of _pageSizes"
+                       class="form-control"
+                       required
+                       [value]="x.key()"
+                       >{{x.name}}</option>
+            </select>
+          </div>
+        </div>
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div>
+              <input [colorPicker]="_seqTrip.landColor()"
+                     (colorPickerChange)="setLandColor($event)"
+                     [style.background]="_seqTrip.landColor()"
+                     class="small"
+                     />
+              Land color 
+            </div>
+            <div>
+              <input [colorPicker]="_seqTrip.seaColor()"
+                     (colorPickerChange)="setSeaColor($event)"
+                     [style.background]="_seqTrip.seaColor()"
+                     class="small"
+                     />
+              Sea color
+            </div>
+            <div>
+              <input [colorPicker]="_seqTrip.borderColor()"
+                     (colorPickerChange)="setBorderColor($event)"
+                     [style.background]="_seqTrip.borderColor()"
+                     class="small"
+                     />
+              Border color
+            </div>
+          </div>
+        </div>
+        <div  class="panel panel-default">
+          <div class="panel-body">
+            <text-prop [(properties)]="_editedProperties"
+                       [title]="_editedPropertiesTitle"></text-prop>
+          </div>
+        </div>
 
-    <button (click)="setFrame()">Reset map frame</button>
+        <button (click)="setFrame()">Auto scroll/zoom</button>
+      </div>
     </div>
-    </div>
-    </div></tab>
-  <tab heading="Places">
+  </tab>
+  <tab>
+    <template tabHeading>
+      <i class="glyphicon glyphicon-map-marker"></i>
+    </template>
     <button (click)="recreate()" class="btn-primary">Update</button>
     <accordion>
       <accordion-group *ngFor="let n of _visitedPlaceList"
@@ -50,22 +85,54 @@
       </accordion-group>
     </accordion>
   </tab>
-  <tab heading = "Journey">
+  <tab>
+    <template tabHeading>
+      <fa name="share-alt"></fa>
+    </template>
     <button (click)="recreate()" class="btn-primary">Update</button>
-    <ul>
-      <li *ngFor="let e of _stages"
-        (click)="selectEdge(e)"
-        [class.nodeSelected]="_selectedEdge && _selectedEdge.from == e.from && _selectedEdge.to == e.to"
-        [class.nodeSkipped]="e.hidden"
-        >
-      {{ origin(e).label }} - {{ destination(e).label }}
-        <input type="checkbox" 
-         [ngModel]="!e.hidden"
-          (click)="toggleHideEdge(e)">
-      </li>
-    </ul>
+    <accordion>
+      <accordion-group *ngFor="let e of _stages"
+               [class.nodeSkipped]="e.hidden"
+               >
+        <div accordion-heading>
+          <input type="checkbox" 
+           [ngModel]="!e.hidden"
+            (click)="toggleHideEdge(e); $event.stopPropagation();">
+          {{ origin(e).label }} - {{ destination(e).label }}
+        </div>
+      </accordion-group>
+    </accordion>
     <button (click)="resetCurves()" class="btn-default">Reset curves</button>
   </tab>
+
+  <tab>
+    <template tabHeading>
+      <fa name="globe"></fa>
+    </template>
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <p *ngIf="!_selectedCountry">Click on a country to select its color</p>
+        <div *ngIf="_selectedCountry">
+          <p>Color for: {{ _selectedCountry }}</p>
+          <input [colorPicker]="countryColor(_selectedCountry)"
+                 (colorPickerChange)="setCountryColor(_selectedCountry, '' + $event)"
+                 [style.background]="countryColor(_selectedCountry)"
+                 />
+        </div>
+
+        <div class="panel panel-default">
+          <div *ngFor="let country of tunedCountries()"
+               (click)=selectCountry(country)
+               class="panel-body"
+           >
+             <span class="square" [style.background]="countryColor(country)"></span>{{country}}
+             <span (click)="setCountryColor(country, 'default')"><fa name="times"></fa></span>
+           </div>
+         </div>
+      </div>
+    </div>
+  </tab>
+
 </tabset>
 </div>
 

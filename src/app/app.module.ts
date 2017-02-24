@@ -13,6 +13,8 @@ import { ButtonsModule } from 'ng2-bootstrap/buttons';
 import { AccordionModule } from 'ng2-bootstrap/accordion';
 import { TabsModule } from 'ng2-bootstrap/tabs';
 
+import { Angular2FontawesomeModule } from 'angular2-fontawesome/angular2-fontawesome'
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -27,6 +29,7 @@ import { TabsModule } from 'ng2-bootstrap/tabs';
     AccordionModule.forRoot(),
     ButtonsModule.forRoot(),
     TabsModule.forRoot(),
+    Angular2FontawesomeModule
   ],
   providers: [],
   bootstrap: [AppComponent]

@@ -12,6 +12,10 @@ export interface TripSaved {
   defaultRadius: number;
   defaultTextProp: any;
 
+  landColor: string;
+  seaColor: string;
+  borderColor: string;
+
   // unit: mm
   width: number;
   height: number;

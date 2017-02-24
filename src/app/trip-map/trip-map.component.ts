@@ -47,13 +47,23 @@ declare class PinchZoom {
   worldDistanceFromViewerDistance(dist: number): number;
 }
 
+declare interface CountryStyle {
+  lineWidth?: number;
+  color?: string;
+}
 
+declare interface WorldBackgroundLayerParams {
+  renderer: CanvasTilesRenderer;
+  onCountryClic: (country: {id: string}) => void;
+  onSeaClic: () => void;
+  landColor: string;
+  seaColor: string;
+  borderColor: string;
+  countryStyle: { [id: string]: CountryStyle; };
+}
 declare class WorldBackgroundLayer {
-  constructor (parameters: {
-    renderer: CanvasTilesRenderer;
-    onCountryClic: (country: {id: string}) => void;
-    onSeaClic: () => void;
-  });
+  params: WorldBackgroundLayerParams;
+  constructor (parameters: WorldBackgroundLayerParams);
 };
 
 class PageSize {
@@ -113,6 +123,8 @@ export class TripMapComponent implements OnInit {
       new PageSize("A5 portrait", 148, 210),
       new PageSize("A6 landscape", 105, 74),
       new PageSize("A6 portrait", 74, 105),
+      new PageSize("A7 landscape", 104/2, 74/2),
+      new PageSize("A7 portrait", 74/2, 104/2),
     ];
     this._pageSizeMap = {};
     for (let s of this._pageSizes) {
@@ -173,7 +185,11 @@ export class TripMapComponent implements OnInit {
       onSeaClic: () => {
         this._editor.deselectLabel();
         this.selectCountry('');
-      }
+      },
+      seaColor: this._seqTrip.seaColor(),
+      borderColor: this._seqTrip.borderColor(),
+      landColor: this._seqTrip.landColor(),
+      countryStyle: {},
     });
     this._renderer.layers[0] = this._worldLayer;
 
@@ -232,6 +248,48 @@ export class TripMapComponent implements OnInit {
     this._selectedCountry = country;
   }
 
+  setCountryColor(country: string, c: string) {
+    if (!country) {
+      return;
+    }
+    const wantsDefault = (c == 'default' || c == this._seqTrip.landColor());
+
+    let countryStyle = this._worldLayer.params.countryStyle[country];
+    if (countryStyle) {
+      if (!wantsDefault) {
+        countryStyle.color = c;
+      } else {
+        delete countryStyle.color;
+        if (Object.keys(countryStyle).length == 0) {
+          delete  this._worldLayer.params.countryStyle[country];
+        }
+      }
+    } else {
+      if (!wantsDefault) {
+        countryStyle = this._worldLayer.params.countryStyle[country] = {
+          color: c
+        };
+      }
+    }
+  }
+
+  countryColor(country: string) {
+    if (this._worldLayer
+        && this._worldLayer.params.countryStyle[country]
+        && this._worldLayer.params.countryStyle[country].color) {
+      return this._worldLayer.params.countryStyle[country].color;
+    }
+    return this._seqTrip.landColor();
+  }
+
+  tunedCountries() : string[] {
+    if (this._worldLayer) {
+      return Object.keys(this._worldLayer.params.countryStyle);
+    } else {
+      return [];
+    }
+  }
+
   selectNode(node: TripNode) {
     this.clearSelection();
 
@@ -241,7 +299,7 @@ export class TripMapComponent implements OnInit {
       }
       if (node.name in this._graph.nodes) {
         this._editedProperties = node.properties;
-        this._editedPropertiesTitle = node.name;
+        this._editedPropertiesTitle = node.label;
         this._selectedNode = this._graph.nodes[node.name];
       } else {
         // this node is probably a combined one.
@@ -378,5 +436,18 @@ export class TripMapComponent implements OnInit {
       this.setFrame(this._canvasWidth, this._canvasHeight);
       setTimeout(() => { this.placeLabels(); }, 20);
     }
+  }
+
+  setSeaColor(c: string) {
+    this._seqTrip.setSeaColor(c);
+    this._worldLayer.params.seaColor = c;
+  }
+  setBorderColor(c: string) {
+    this._seqTrip.setBorderColor(c);
+    this._worldLayer.params.borderColor = c;
+  }
+  setLandColor(c: string) {
+    this._seqTrip.setLandColor(c);
+    this._worldLayer.params.landColor = c;
   }
 }
